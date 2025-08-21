@@ -2,34 +2,28 @@ package CRBT.Billing_Service.Model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
+import CRBT.Billing_Service.Model.Billing.BillingStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 
 @Entity
-@Table(name = "billing")
-public class Billing {
+public class Subscription {
+	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Long invoice_id;
 	private Long sub_id;
-	private Long song_id;
+	private Long user_id;
+	private String plan_type;
+	LocalDateTime start_date;
+	LocalDateTime end_date;
 	
-	
-	@Column(nullable=false)
-	private double amount;
-	
-	LocalDateTime pay_date;
-	
-	public enum BillingStatus {
-	    PENDING, SUCCESS, FAILED, CANCELLED, REFUNDED}
+	public enum SubStatus {
+	    ACTIVE,EXPIRED}
 	@Enumerated(EnumType.STRING)
-	private BillingStatus status;
+	private SubStatus status;
 
 }
