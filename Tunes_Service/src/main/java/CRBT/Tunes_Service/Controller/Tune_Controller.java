@@ -1,12 +1,11 @@
 package CRBT.Tunes_Service.Controller;
 
+import CRBT.Tunes_Service.DTO.TuneDTO;
 import CRBT.Tunes_Service.Model.Tunes;
 import CRBT.Tunes_Service.Service.Tune_Service;
 
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/tunes")
@@ -18,37 +17,43 @@ public class Tune_Controller {
         this.service = service;
     }
 
-    // ✅ Add a tune
+    // Add a tune
     @PostMapping
-    public Tunes addTune(@RequestBody Tunes tune) {
+    public TuneDTO addTune(@RequestBody Tunes tune) {
         return service.addTune(tune);
     }
 
-    // ✅ Get all tunes
+    // Get all tunes
     @GetMapping
-    public List<Tunes> getAllTunes() {
+    public List<TuneDTO> getAllTunes() {
         return service.getAllTunes();
     }
 
-    // ✅ Get tune by Title
-    @GetMapping("/{title}")
-    public Optional<Tunes> getTunesByTitle(@PathVariable String title) {
+    // Get tune by Title
+    @GetMapping("/title/{title}")
+    public TuneDTO getTunesByTitle(@PathVariable String title) {
         return service.getTuneByTitle(title);
     }
 
-    // ✅ Get tunes by Genre
+    // Get tunes by Genre
     @GetMapping("/genre/{genre}")
-    public List<Tunes> getTunesByGenre(@PathVariable String genre) {
+    public List<TuneDTO> getTunesByGenre(@PathVariable String genre) {
         return service.getTunesByGenre(genre);
     }
 
-    // ✅ Get tunes by Language
+    // Get tunes by Language
     @GetMapping("/language/{language}")
-    public List<Tunes> getTunesByLanguage(@PathVariable String language) {
+    public List<TuneDTO> getTunesByLanguage(@PathVariable String language) {
         return service.getTunesByLanguage(language);
     }
 
-    // ✅ Delete tune by ID
+    // Update tune
+    @PutMapping("/{id}")
+    public TuneDTO updateTune(@PathVariable Long id, @RequestBody Tunes tune) {
+        return service.updateTune(id, tune);
+    }
+
+    // Delete tune by ID
     @DeleteMapping("/{id}")
     public String deleteTune(@PathVariable Long id) {
         service.deleteTune(id);
