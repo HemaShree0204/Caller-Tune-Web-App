@@ -1,15 +1,15 @@
 package CRBT.Billing_Service.BillingDTO;
 
 public class UserDTO {
-	private Long user_id;
+	private Long users_id;
 	private String username;
     private String password;
     private String role;
-	public Long getUser_id() {
-		return user_id;
+	public Long getUsers_id() {
+		return users_id;
 	}
-	public void setUser_id(Long user_id) {
-		this.user_id = user_id;
+	public void setUsers_id(Long users_id) {
+		this.users_id = users_id;
 	}
 	public String getUsername() {
 		return username;

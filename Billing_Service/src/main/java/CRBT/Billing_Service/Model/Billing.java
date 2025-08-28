@@ -19,6 +19,14 @@ public class Billing {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long invoice_id;
 	private Long sub_id;
+	@Column(name = "users_id", nullable = false) 
+	private Long users_id;
+	public Long getUsers_id() {
+		return users_id;
+	}
+	public void setUsers_id(Long users_id) {
+		this.users_id = users_id;
+	}
 	public Long getInvoice_id() {
 		return invoice_id;
 	}
