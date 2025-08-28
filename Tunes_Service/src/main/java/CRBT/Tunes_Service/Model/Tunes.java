@@ -58,3 +58,4 @@ public class Tunes {
     public String getPreview_url() { return preview_url; }
     public void setPreview_url(String preview_url) { this.preview_url = preview_url; }
 }
+
