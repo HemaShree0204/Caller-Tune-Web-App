@@ -46,7 +46,12 @@ public class Tune_Controller {
     public List<TuneDTO> getTunesByLanguage(@PathVariable String language) {
         return service.getTunesByLanguage(language);
     }
-
+   //Get tune by Price
+    @GetMapping("/price/{price}")
+    public List<TuneDTO> getTunesByPrice(@PathVariable double price)
+    {
+    	return service.getTunesByPrice(price);
+    }
     // Update tune
     @PutMapping("/{id}")
     public TuneDTO updateTune(@PathVariable Long id, @RequestBody Tunes tune) {

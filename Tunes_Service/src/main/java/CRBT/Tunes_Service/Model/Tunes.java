@@ -17,6 +17,7 @@ public class Tunes {
     private String genre;
     private String audio_url;
     private String preview_url;
+    private double price;
 
     // Constructors
     public Tunes() {}
@@ -31,6 +32,7 @@ public class Tunes {
         this.genre = genre;
         this.audio_url = audio_url;
         this.preview_url = preview_url;
+        this.price= price;
     }
 
     // Getters & Setters
@@ -57,5 +59,8 @@ public class Tunes {
 
     public String getPreview_url() { return preview_url; }
     public void setPreview_url(String preview_url) { this.preview_url = preview_url; }
+
+	public double getPrice() {return price;}
+    public void setPrice(double price) {this.price = price;}
 }
 

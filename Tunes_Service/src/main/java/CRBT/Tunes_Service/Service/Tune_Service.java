@@ -45,7 +45,11 @@ public class Tune_Service {
     public List<TuneDTO> getTunesByLanguage(String language) {
         return repository.findByLanguage(language).stream().map(this::convertToDTO).collect(Collectors.toList());
     }
-
+    //Get tunes by Price
+    public List<TuneDTO> getTunesByPrice(double price)
+    {
+    	return repository.findByPrice(price).stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
     // Delete tune by ID
     public void deleteTune(Long id) {
         if (!repository.existsById(id)) {
@@ -66,6 +70,7 @@ public class Tune_Service {
         tune.setGenre(updatedTune.getGenre());
         tune.setAudio_url(updatedTune.getAudio_url());
         tune.setPreview_url(updatedTune.getPreview_url());
+        tune.setPrice(updatedTune.getPrice());
 
         return convertToDTO(repository.save(tune));
     }
@@ -79,7 +84,9 @@ public class Tune_Service {
                 tune.isActive(),
                 tune.getLanguage(),
                 tune.getGenre(),
-                tune.getPreview_url()
+                tune.getPreview_url(),
+                tune.getPrice()
+              
         );
     }
 }
