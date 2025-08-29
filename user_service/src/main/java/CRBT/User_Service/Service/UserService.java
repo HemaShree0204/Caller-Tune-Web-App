@@ -28,6 +28,11 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
+
+        // Check if mobile number already exists
+        if (userRepository.existsByMobileNumber(request.getMobileNumber())) {
+            throw new RuntimeException("Mobile number already exists");
+        }
         
         // Convert role string to enum
         Users.Role role;
@@ -41,28 +46,36 @@ public class UserService {
         Users user = new Users();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
+        user.setMobileNumber(request.getMobileNumber()); // <-- Added mobile number
         user.setRole(role);
         user.setPlanType(request.getPlan_type());
         
         // Save user
         Users savedUser = userRepository.save(user);
-        AuthRegisterRequest authRequest = new AuthRegisterRequest(
-        	    request.getUsername(),
-        	    request.getPassword(),
-        	    savedUser.getUsers_id()
-        	);
 
-        	// Call Auth Service
-        	try {
-        	    restTemplate.postForEntity(
-        	        "http://localhost:8081/auth/internal-register",  // Make sure this is the correct port
-        	        authRequest,
-        	        Void.class
-        	    );
-        	} catch (Exception e) {
-        	    // Optional: rollback
-        	    userRepository.deleteById(savedUser.getUsers_id());
-        	    throw new RuntimeException("Failed to register with Auth Service: " + e.getMessage());}
+        // Set default caller tune (pick one of your uploaded tunes)
+        savedUser.setCallerTune("1756462923780_Enna_Sona_M.mp3");  // replace with actual filename
+        userRepository.save(savedUser); // save again to update caller tune
+
+        AuthRegisterRequest authRequest = new AuthRegisterRequest(
+            request.getUsername(),
+            request.getPassword(),
+            savedUser.getUsers_id()
+        );
+
+        // Call Auth Service
+        try {
+            restTemplate.postForEntity(
+                "http://localhost:8082/auth/internal-register", 
+                authRequest,
+                Void.class
+            );
+        } catch (Exception e) {
+            // Optional: rollback
+            userRepository.deleteById(savedUser.getUsers_id());
+            throw new RuntimeException("Failed to register with Auth Service: " + e.getMessage());
+        }
+
         // Convert to DTO and return
         return convertToDTO(savedUser);
     }
@@ -84,6 +97,8 @@ public class UserService {
         dto.setUsers_id(user.getUsers_id());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
+        dto.setMobileNumber(user.getMobileNumber()); // <-- Include mobile number in DTO
+        dto.setCallerTune(user.getCallerTune());     // <-- Include caller tune in DTO
         dto.setRole(user.getRole().name());
         dto.setPlan_type(user.getPlanType());
         return dto;

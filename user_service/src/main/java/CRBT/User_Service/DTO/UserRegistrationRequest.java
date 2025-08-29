@@ -6,6 +6,7 @@ public class UserRegistrationRequest {
     private String password; // This will be ignored in user service, used by auth service
     private String plan_type;
     private String role;
+    private String mobileNumber;
     
     // Constructors
     public UserRegistrationRequest() {}
@@ -50,4 +51,10 @@ public class UserRegistrationRequest {
     public void setRole(String role) {
         this.role = role;
     }
+    public String getMobileNumber() { 
+    	return mobileNumber; 
+    	}
+    public void setMobileNumber(String mobileNumber) { 
+    	this.mobileNumber = mobileNumber; 
+    	}
 }
