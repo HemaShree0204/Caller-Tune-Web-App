@@ -1,0 +1,39 @@
+package CRBT.User_Service.DTO;
+
+public class AuthRegisterRequest {
+    private String username;
+    private String password;
+    private Long users_id;
+
+    public AuthRegisterRequest() {}
+
+    public AuthRegisterRequest(String username, String password, Long users_id) {
+        this.username = username;
+        this.password = password;
+        this.users_id = users_id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Long getUsers_id() {
+        return users_id;
+    }
+
+    public void setUsers_id(Long users_id) {
+        this.users_id = users_id;
+    }
+}
