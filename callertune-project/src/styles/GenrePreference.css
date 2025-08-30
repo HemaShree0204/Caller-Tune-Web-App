@@ -1,0 +1,60 @@
+.genre-page {
+  text-align: center;
+  padding: 30px;
+  font-family: Arial, sans-serif;
+}
+
+.genres-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.genre-card {
+  padding: 15px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.genre-card:hover {
+  border-color: #6a0dad;
+  transform: scale(1.05);
+}
+
+.genre-card.selected {
+  background-color: #6a0dad;
+  color: white;
+  border-color: #6a0dad;
+}
+
+.genre-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.continue-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #6a0dad;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.skip-btn {
+  padding: 10px 20px;
+  border: 2px solid #6a0dad;
+  border-radius: 8px;
+  background-color: white;
+  color: #6a0dad;
+  font-size: 16px;
+  cursor: pointer;
+}
