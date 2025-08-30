@@ -10,7 +10,7 @@ import CRBT.Billing_Service.Model.Subscription;
 
 public interface Subscription_Repository extends JpaRepository<Subscription,Long>{
 	
-	@Query("SELECT s FROM Subscription s WHERE s.users_id = :userId")
+	@Query("SELECT s FROM Subscription s WHERE s.users_id = :users_id")
 	List<Subscription> findByUsers_id(@Param("users_id") Long users_id);
 
 }

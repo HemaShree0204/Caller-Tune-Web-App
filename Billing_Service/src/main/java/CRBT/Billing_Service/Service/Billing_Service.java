@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import CRBT.Billing_Service.BillingDTO.Billing_RequestDTO;
 import CRBT.Billing_Service.BillingDTO.Billing_ResponseDTO;
 import CRBT.Billing_Service.BillingDTO.UserDTO;
+import CRBT.Billing_Service.Client.UserClient;
 import CRBT.Billing_Service.Model.Billing;
 import CRBT.Billing_Service.Repository.Billing_Repository;
 
@@ -21,47 +22,45 @@ public class Billing_Service {
     private Billing_Repository bill_rep;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private UserClient userClient;
     
-    public UserDTO getUserById(Long user_id) {
-        String url = "http://AUTH-SERVICE/users/" + user_id; // Replace with actual service name or URL
-        return restTemplate.getForObject(url, UserDTO.class);
+    public UserDTO getUserById(Long users_id) {
+    	return userClient.getUserById(users_id);
     }
 
 
     public Billing_ResponseDTO createBill(Billing_RequestDTO billRequest) {
-    	
-    	UserDTO user = getUserById(billRequest.getUsers_id());
+    	UserDTO user = userClient.getUserById(billRequest.getUsers_id());
         if (user == null) {
-            throw new RuntimeException("User not found in Auth service");
+            throw new RuntimeException("User not found in User service");
         }
+
         Billing bill = new Billing();
         bill.setUsers_id(billRequest.getUsers_id());
         bill.setSub_id(billRequest.getSub_id());
         bill.setSong_id(billRequest.getSong_id());
         bill.setAmount(billRequest.getAmount());
-        bill.setStatus(Billing.BillingStatus.PENDING);
+        bill.setStatus(billRequest.getStatus() == null
+                ? Billing.BillingStatus.PENDING
+                : Billing.BillingStatus.valueOf(billRequest.getStatus().toUpperCase()));
         bill.setPay_date(null);
 
-        Billing saved = bill_rep.save(bill);
-        return mapToResponse(saved);
+        return mapToResponse(bill_rep.save(bill));
     }
 
     public Billing_ResponseDTO updateBill(Long invoice_id, Billing_RequestDTO update) {
         Billing bill = bill_rep.findById(invoice_id)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-        bill.setUsers_id(update.getUsers_id());
-        bill.setSub_id(update.getSub_id());
-        bill.setSong_id(update.getSong_id());
-        bill.setAmount(update.getAmount());
+        if (update.getUsers_id() != null) bill.setUsers_id(update.getUsers_id());
+        if (update.getSub_id() != null) bill.setSub_id(update.getSub_id());
+        if (update.getSong_id() != null) bill.setSong_id(update.getSong_id());
+        if (update.getAmount() > 0) bill.setAmount(update.getAmount());
         if (update.getStatus() != null) {
             bill.setStatus(Billing.BillingStatus.valueOf(update.getStatus().toUpperCase()));
         }
-
-        Billing updated = bill_rep.save(bill);
-        return mapToResponse(updated);
-    }
+        return mapToResponse(bill_rep.save(bill));
+        }
 
     public Optional<Billing> getById(Long invoice_id) {
         return bill_rep.findById(invoice_id);
@@ -81,11 +80,10 @@ public class Billing_Service {
     }
 
     public List<Billing> getBillsForUser(String username) {
-        String url = "http://localhost:8080/user/" + username;
-        UserDTO user = restTemplate.getForObject(url, UserDTO.class);
+    	UserDTO user = userClient.getUserByUsername(username);
 
         if (user == null || user.getUsers_id() == null) {
-            throw new RuntimeException("User not found in Auth Service");
+            throw new RuntimeException("User not found in User Service");
         }
 
         return bill_rep.findByUsers_id(user.getUsers_id());

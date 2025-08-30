@@ -45,7 +45,7 @@ public class Billing_Controller {
     }
 
     // ✅ 4. Get bills by user ID (admin)
-    @GetMapping("/user/{user_id}")
+    @GetMapping("/user/{users_id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Billing_ResponseDTO>> getBillByUser(@PathVariable Long users_id) {
         return ResponseEntity.ok(service.getByUser(users_id));

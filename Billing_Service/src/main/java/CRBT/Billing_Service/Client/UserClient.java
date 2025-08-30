@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "auth-service", url = "http://localhost:8080")  // Matches the service ID registered with Eureka
 public interface UserClient {
 
-    @GetMapping("/users/{user_id}")
-    UserDTO getUserById(@PathVariable("id") Long userId);
+    @GetMapping("/users/{users_id}")
+    UserDTO getUserById(@PathVariable("users_id") Long users_id);
     
 
     @GetMapping("/users/username/{username}")
