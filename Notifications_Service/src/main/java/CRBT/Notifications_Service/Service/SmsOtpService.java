@@ -6,63 +6,34 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.Instant;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class SmsOtpService {
 
-	@Value("${message.central.customer-id}")
+    @Value("${message.central.customer-id}")
     private String customerId;
 
-    @Value("${message.central.password-base64}")  // this is actually JWT token
-    private String base64Password;
+    @Value("${message.central.auth-token}")  // Auth token given in dashboard
+    private String authToken;
 
     private final RestTemplate rest = new RestTemplate();
 
-    private final Map<String, OtpCache> otpStore = new ConcurrentHashMap<>();
-    private final long OTP_VALIDITY_SECONDS = 300; // 5 minutes
-    
-    private String authToken;
-    private long tokenExpiryEpoch;
-    private String getAuthToken() {
-        if (authToken != null && Instant.now().getEpochSecond() < tokenExpiryEpoch) {
-            return authToken;
-        }
-
-        String url = String.format(
-            "https://cpaas.messagecentral.com/auth/v1/authentication/token?customerId=%s&key=%s&scope=NEW",
-            customerId, base64Password);
-
-        Map<String, Object> response = rest.getForObject(url, Map.class);
-
-        if (response != null && response.get("token") != null) {
-            authToken = response.get("token").toString();
-            tokenExpiryEpoch = Instant.now().getEpochSecond() + 300; // cache 5 mins
-            return authToken;
-        }
-        throw new RuntimeException("Failed to get auth token");
-    }
-
+    /**
+     * Request MessageCentral to send an OTP to the given phone number.
+     * OTP will be generated & delivered by MessageCentral (not by us).
+     */
     public String sendOtp(String phoneNumber) {
-    	String otp = generateOtp();
-
         HttpHeaders headers = new HttpHeaders();
-        headers.set("authToken", base64Password);  // directly use this token
-
-        String message = "Your OTP is " + otp;
+        headers.set("authToken", authToken);
 
         String url = UriComponentsBuilder
-            .fromHttpUrl("https://cpaas.messagecentral.com/verification/v3/send")
-            .queryParam("countryCode", "91")
-            .queryParam("flowType", "SMS")
-            .queryParam("mobileNumber", phoneNumber)
-            .queryParam("senderId", "UTOMOB")
-            .queryParam("type", "SMS")
-            .queryParam("message", message)
-            .toUriString();
+                .fromHttpUrl("https://cpaas.messagecentral.com/verification/v3/send")
+                .queryParam("countryCode", "91")
+                .queryParam("flowType", "SMS")
+                .queryParam("type", "OTP")
+                .queryParam("mobileNumber", phoneNumber)
+                .toUriString();
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
         ResponseEntity<Map> response = rest.exchange(url, HttpMethod.POST, request, Map.class);
@@ -71,59 +42,42 @@ public class SmsOtpService {
             throw new RuntimeException("OTP send failed: " + response.getStatusCode());
         }
 
-        Map data = (Map) response.getBody().get("data");
-        String verificationId = data.get("verificationId").toString();
+        Map body = response.getBody();
+        if (body == null || body.get("data") == null) {
+            throw new RuntimeException("Invalid response from MessageCentral");
+        }
 
-        otpStore.put(phoneNumber, new OtpCache(otp, verificationId, Instant.now().getEpochSecond() + OTP_VALIDITY_SECONDS));
-
-        return verificationId;
+        Map data = (Map) body.get("data");
+        return data.get("verificationId").toString();
     }
 
-    public boolean verifyOtp(String phoneNumber, String otp) {
-        OtpCache cache = otpStore.get(phoneNumber);
+    /**
+     * Validate OTP entered by user against MessageCentral verify API.
+     */
+    public boolean verifyOtp(String verificationId, String otp) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("authToken", authToken);
 
-        if (cache == null) return false;
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://cpaas.messagecentral.com/verification/v3/validateOtp")
+                .queryParam("verificationId", verificationId)
+                .queryParam("code", otp)
+                .toUriString();
 
-        long now = Instant.now().getEpochSecond();
-        if (now > cache.getExpiry()) {
-            otpStore.remove(phoneNumber);
-            return false; // OTP expired
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = rest.exchange(url, HttpMethod.GET, request, Map.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return false;
         }
 
-        if (cache.getOtp().equals(otp)) {
-            otpStore.remove(phoneNumber); // OTP verified, remove it
-            return true;
+        Map body = response.getBody();
+        if (body == null || body.get("data") == null) {
+            return false;
         }
 
-        return false; // OTP mismatch
+        Map data = (Map) body.get("data");
+        String status = (String) data.get("verificationStatus");
+        return "VERIFICATION_COMPLETED".equalsIgnoreCase(status);
     }
-
-    private String generateOtp() {
-        return String.valueOf(100000 + new Random().nextInt(900000));
-    }
-
-    private static class OtpCache {
-        private final String otp;
-        private final String verificationId;
-        private final long expiry;
-
-        public OtpCache(String otp, String verificationId, long expiry) {
-            this.otp = otp;
-            this.verificationId = verificationId;
-            this.expiry = expiry;
-        }
-
-        public String getOtp() {
-            return otp;
-        }
-
-        public String getVerificationId() {
-            return verificationId;
-        }
-
-        public long getExpiry() {
-            return expiry;
-        }
-        
-    }
-    }
+}
