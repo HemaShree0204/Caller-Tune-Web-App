@@ -1,15 +1,25 @@
 package CRBT.Auth_Service.Service;
-import io.jsonwebtoken.*;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
 import CRBT.Auth_Service.Model.AuthUser;
 
+import java.security.Key;
 import java.util.Date;
 
 @Service
 public class JWTService {
-    private final String SECRET = "MyJwtSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm";
-    private final long EXPIRATION = 86400000; // 24 hours
+
+    private static final String SECRET = "MyJwtSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm";
+    private static final long EXPIRATION = 86400000; // 24 hours
+
+    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public String generateToken(AuthUser authUser) {
         return Jwts.builder()
@@ -17,34 +27,34 @@ public class JWTService {
                 .claim("userId", authUser.getUsers_id())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return parseClaims(token).getSubject();
     }
 
     public Long extractUserId(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET)
-                .parseClaimsJws(token)
-                .getBody()
-                .get("userId", Long.class);
+        return parseClaims(token).get("userId", Long.class);
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);
+            parseClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException("Token expired");
+            throw new RuntimeException("Token expired", e);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new RuntimeException("Invalid token");
+            throw new RuntimeException("Invalid token", e);
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
