@@ -9,6 +9,6 @@ public interface Tune_Respository extends JpaRepository<Tunes, Long> {
     List<Tunes> findByGenre(String genre);
     List<Tunes> findByLanguage(String language);
     List<Tunes> findByPrice(double price);
-    Optional<Tunes> findByTitle(String title); // ✅ change here
+    Optional<Tunes> findByTitle(String title); 
 }
 
