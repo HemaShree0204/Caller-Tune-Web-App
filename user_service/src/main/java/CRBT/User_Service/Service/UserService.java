@@ -6,6 +6,9 @@ import CRBT.User_Service.DTO.UserRegistrationRequest;
 import CRBT.User_Service.DTO.UsersDTO;
 import CRBT.User_Service.Model.Users;
 import CRBT.User_Service.Repository.UserRepository;
+import CRBT.User_Service.Exceptions.UserNotFoundException;
+import CRBT.User_Service.Exceptions.DuplicateUsernameException;
+import CRBT.User_Service.Exceptions.DuplicateMobileNumberException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,12 +24,12 @@ public class UserService {
     public UsersDTO createUser(UserRegistrationRequest request) {
         // Check if username already exists
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new DuplicateUsernameException("Username already exists");
         }
 
         // Check if mobile number already exists
         if (userRepository.existsByMobileNumber(request.getMobileNumber())) {
-            throw new RuntimeException("Mobile number already exists");
+            throw new DuplicateMobileNumberException("Mobile number already exists");
         }
 
         // Convert role string to enum
@@ -73,15 +76,15 @@ public class UserService {
         return convertToDTO(savedUser);
     }
 
-    public UsersDTO getUserById(Long userId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UsersDTO getUserById(Long users_id) {
+        Users user = userRepository.findById(users_id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return convertToDTO(user);
     }
 
     public UsersDTO getUserByUsername(String username) {
         Users user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return convertToDTO(user);
     }
 
