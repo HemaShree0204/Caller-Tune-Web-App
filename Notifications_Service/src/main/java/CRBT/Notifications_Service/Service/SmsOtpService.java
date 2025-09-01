@@ -1,5 +1,7 @@
 package CRBT.Notifications_Service.Service;
 
+import CRBT.Notifications_Service.Exception.OtpSendFailedException;
+import CRBT.Notifications_Service.Exception.OtpVerificationFailedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -17,12 +19,12 @@ public class SmsOtpService {
     @Value("${message.central.auth-token}")  // Auth token given in dashboard
     private String authToken;
 
-    private final RestTemplate rest = new RestTemplate();
+    private RestTemplate rest = new RestTemplate();
+    
+    public SmsOtpService(RestTemplate rest) {
+        this.rest = rest;
+    }
 
-    /**
-     * Request MessageCentral to send an OTP to the given phone number.
-     * OTP will be generated & delivered by MessageCentral (not by us).
-     */
     public String sendOtp(String phoneNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("authToken", authToken);
@@ -39,21 +41,18 @@ public class SmsOtpService {
         ResponseEntity<Map> response = rest.exchange(url, HttpMethod.POST, request, Map.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("OTP send failed: " + response.getStatusCode());
+            throw new OtpSendFailedException("OTP send failed: " + response.getStatusCode());
         }
 
         Map body = response.getBody();
         if (body == null || body.get("data") == null) {
-            throw new RuntimeException("Invalid response from MessageCentral");
+            throw new OtpSendFailedException("Invalid response from MessageCentral");
         }
 
         Map data = (Map) body.get("data");
         return data.get("verificationId").toString();
     }
 
-    /**
-     * Validate OTP entered by user against MessageCentral verify API.
-     */
     public boolean verifyOtp(String verificationId, String otp) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("authToken", authToken);
@@ -68,16 +67,20 @@ public class SmsOtpService {
         ResponseEntity<Map> response = rest.exchange(url, HttpMethod.GET, request, Map.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            return false;
+            throw new OtpVerificationFailedException("OTP verification failed with status: " + response.getStatusCode());
         }
 
         Map body = response.getBody();
         if (body == null || body.get("data") == null) {
-            return false;
+            throw new OtpVerificationFailedException("Invalid response from MessageCentral");
         }
 
         Map data = (Map) body.get("data");
         String status = (String) data.get("verificationStatus");
-        return "VERIFICATION_COMPLETED".equalsIgnoreCase(status);
+        if (!"VERIFICATION_COMPLETED".equalsIgnoreCase(status)) {
+            throw new OtpVerificationFailedException("OTP is invalid or expired");
+        }
+
+        return true;
     }
 }
