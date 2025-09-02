@@ -3,12 +3,14 @@ package CRBT.Notifications_Service;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication(exclude = {
 	    org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
 	    org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class
 	})
+@CrossOrigin("*")
 public class NotificationsServiceApplication {
 
 	public static void main(String[] args) {
