@@ -36,7 +36,7 @@ public class JWTService {
     }
 
     public Long extractUserId(String token) {
-        return parseClaims(token).get("userId", Long.class);
+        return parseClaims(token).get("users_id", Long.class);
     }
 
     public boolean validateToken(String token) {

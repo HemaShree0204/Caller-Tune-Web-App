@@ -121,12 +121,7 @@
             <version>6.5.3.Final</version>
         </dependency>
 
-        <!-- Billing_Service Dependency -->
-        <dependency>
-            <groupId>CRBT</groupId>
-            <artifactId>Billing_Service</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
+       
         <dependency>
         	<groupId>CRBT</groupId>
         	<artifactId>Admin_Service</artifactId>
